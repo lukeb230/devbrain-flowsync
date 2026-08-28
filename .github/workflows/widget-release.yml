@@ -107,7 +107,10 @@ jobs:
           shasum -a 256 DevBrain.app.zip > DevBrain.app.zip.sha256
           cat DevBrain.app.zip.sha256
           rm -rf dmg && mkdir dmg && cp -R DevBrain.app dmg/ && ln -s /Applications dmg/Applications
-          hdiutil create -volname "DevBrain" -srcfolder dmg -ov -format UDZO DevBrain.dmg
+          # Explicit size + HFS+: hdiutil's auto-sizing undershoots with the
+          # 110 MB Node binary inside and fails with a misleading "No space
+          # left on device" (the runner disk is fine).
+          hdiutil create -size 600m -fs HFS+ -volname "DevBrain" -srcfolder dmg -ov -format UDZO DevBrain.dmg
           ls -la DevBrain.dmg
 
       - name: Publish release
