@@ -5,6 +5,10 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 export function SignInButton({ next }: { next?: string }) {
   async function signIn() {
     const supabase = supabaseBrowser();
+    // Remember where to land after OAuth in a cookie too: the desktop panel
+    // must come back to /widget, and the query-string hint alone can be lost
+    // between the provider hops. The callback reads either.
+    if (next) document.cookie = `devbrain_next=${encodeURIComponent(next)}; path=/; max-age=600; samesite=lax`;
     await supabase.auth.signInWithOAuth({
       provider: "github",
       options: {

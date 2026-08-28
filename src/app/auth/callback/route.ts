@@ -7,7 +7,14 @@ import { supabaseAdmin } from "@/lib/supabase/server";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const nextRaw = searchParams.get("next") ?? "";
+  // Where to land: ?next= from the sign-in button, else the devbrain_next
+  // cookie it set (the desktop panel relies on this — it must return to
+  // /widget, never /dashboard, which the panel opens in the browser).
+  const cookieNext = (() => {
+    const m = /(?:^|;\s*)devbrain_next=([^;]+)/.exec(request.headers.get("cookie") ?? "");
+    try { return m ? decodeURIComponent(m[1]) : ""; } catch { return ""; }
+  })();
+  const nextRaw = searchParams.get("next") || cookieNext || "";
   const next = nextRaw.startsWith("/") && !nextRaw.startsWith("//") ? nextRaw : "/dashboard";
 
   if (code) {
